@@ -1,4 +1,4 @@
-import mongoose , {Schema} from mongoose
+import mongoose , {Schema} from "mongoose"
 const notesSchema=new Schema({
     title:{
         type:String
@@ -16,3 +16,4 @@ ref:"User"
     }
 })
 export const Notes=mongoose.model("Notes", notesSchema)
+// yha jo subject hai na usme id se store hoga subject;

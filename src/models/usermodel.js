@@ -26,7 +26,7 @@ password:{
     type:String,
     required:[true,'pass required']
 },
-refreshTokens:{
+refreshToken:{
     type:String
 }
 });
