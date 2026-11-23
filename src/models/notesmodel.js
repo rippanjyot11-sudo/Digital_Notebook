@@ -14,6 +14,6 @@ const notesSchema=new Schema({
 type:Schema.Types.ObjectId,
 ref:"User"
     }
-})
+}, { timestamps: true })
 export const Notes=mongoose.model("Notes", notesSchema)
 // yha jo subject hai na usme id se store hoga subject;

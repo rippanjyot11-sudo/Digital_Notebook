@@ -9,5 +9,5 @@ user:{
     type:Schema.Types.ObjectId,
     ref:"User"
 }
-})
+}, { timestamps: true })
 export const  Subject=mongoose.model("Subject",subjectSchema)

@@ -105,16 +105,12 @@ User-specific metadata filtering is important to ensure that retrieval only acce
 
 ```text
 Digital_Notebook/
-│
 ├── ai.service/
 │   ├── main.py
-│   ├── summarize.py
-│   ├── question_generate.py
-│   ├── rag_gen.py
-│   ├── rag_ingest.py
-│   ├── rag_retrieval.py
+│   ├── requirements.txt
 │   └── chroma_db/
-│
+├── client/
+│   └── src/
 ├── src/
 │   ├── controller/
 │   ├── db/
@@ -122,12 +118,9 @@ Digital_Notebook/
 │   ├── models/
 │   ├── routes/
 │   └── utils/
-│
 ├── app.js
 ├── index.js
-├── package.json
-├── .gitignore
-└── README.md
+└── package.json
 ```
 
 ## 🚀 Getting Started
@@ -148,75 +141,73 @@ cd Digital_Notebook
 
 ### 2. Run the Node.js Backend
 
-Install dependencies:
-
-```bash
-npm install
-```
-
 Create a `.env` file in the project root and configure the required environment variables:
 
 ```env
 PORT=8000
-DB_name=Digitalbook
-MONGODB_URI=<YOUR_MONGODB_URI>
-CORS_ORIGIN=*
+NODE_ENV=development
+DB_NAME=Digitalbook
+MONGODB_URI=<YOUR_MONGODB_CONNECTION_STRING>
+CORS_ORIGIN=http://localhost:5173
 ACCESS_TOKEN_SECRET=<YOUR_ACCESS_TOKEN_SECRET>
 ACCESS_TOKEN_EXPIRY=1d
 REFRESH_TOKEN_SECRET=<YOUR_REFRESH_TOKEN_SECRET>
 REFRESH_TOKEN_EXPIRY=10d
+AI_SERVICE_URL=http://127.0.0.1:8001
+AI_SERVICE_TOKEN=<A_LONG_RANDOM_SHARED_SERVICE_TOKEN>
 ```
 
-Start the backend using the script defined in `package.json`. For example:
+Copy `.env.example` as a starting point. Use a long, random value for `AI_SERVICE_TOKEN`; the same value must be in `ai.service/.env`.
+
+Install and start the backend:
 
 ```bash
+npm install
 npm run dev
 ```
 
+The API will be available at `http://localhost:8000`.
+
 ### 3. Run the Python AI Service
 
-Open a separate terminal:
-
-```bash
-cd ai.service
-python -m venv venv
-```
-
-Activate the virtual environment on Windows:
+Open another terminal:
 
 ```powershell
-.\venv\Scripts\Activate.ps1
+cd ai.service
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1
+Copy-Item .env.example .env
+pip install -r requirements.txt
+uvicorn main:app --reload --host 127.0.0.1 --port 8001
 ```
 
-Install the Python dependencies listed in your project's dependency file, then configure the AI service's required environment variables.
+Set `AI_SERVICE_TOKEN` in `ai.service/.env` to the same value as the backend `.env`. Add a Hugging Face token with Inference Providers access as `HF_TOKEN`. Set `HF_MODEL` to a chat model available to that token. The embedding model downloads the first time a note is indexed.
 
-Start the FastAPI application:
+### 4. Run the React Frontend
 
-```bash
-uvicorn main:app --reload --port 8001
+Open a third terminal from the project root:
+
+```powershell
+cd client
+npm install
+npm run dev
 ```
 
-The command assumes that `main.py` defines a FastAPI application named `app`.
+Open the Vite URL printed in the terminal (normally `http://localhost:5173`). Keep all three services running while using AI features.
 
-### 4. Access the Services
+For a production-style backend start, use `npm start`. Build the frontend with `npm run build:client`.
 
-- Node.js backend: `http://localhost:8000`
-- Python AI service: `http://localhost:8001`
-- FastAPI interactive documentation: `http://localhost:8001/docs`
+### AI features
 
-## 🔌 AI API Endpoints
-
-The Express AI router includes the following endpoint patterns:
+After signing in, select a subject and note. The AI panel can summarize the note, generate practice questions, or add it to semantic study search. Index notes before asking questions across a subject. The API routes are:
 
 | Method | Endpoint | Purpose |
 |---|---|---|
-| POST | `/api/v1/ai/summarize/:note_id` | Summarize a note |
-| POST | `/api/v1/ai/questiongenerate/:note_id` | Generate questions from a note |
-| POST | `/api/v1/ai/ingest/:note_id` | Ingest a note into the RAG pipeline |
-
-These paths assume the AI router is mounted at `/api/v1/ai`. Confirm the actual route mounting and endpoint definitions in the source code.
-
-The Python AI service also provides functionality for note summarization, question generation, ingestion, retrieval, and answer generation, according to its configured routes.
+| POST | `/api/v1/ai/summarize/:noteId` | Summarize an owned note |
+| POST | `/api/v1/ai/questiongenerate/:noteId` | Generate questions and an answer key |
+| POST | `/api/v1/ai/ingest/:noteId` | Embed and index an owned note |
+| POST | `/api/v1/ai/query` | Answer a question from the user's indexed notes |
+| GET | `http://localhost:8001/docs` | FastAPI interactive docs |
 
 ## 🧪 Testing
 
